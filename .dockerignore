@@ -1,0 +1,17 @@
+node_modules
+.git
+.DS_Store
+.env
+*.local
+
+dist
+dist-ssr
+.nitro
+.output
+.tanstack
+.vinxi
+.wrangler
+__unconfig*
+
+tracks
+covers

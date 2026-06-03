@@ -6,23 +6,46 @@ This app plays audio from a local `tracks/` folder, stores music and playlist da
 
 ## Getting Started
 
-```bash
-pnpm install
-```
-
-Create a `.env` file with a Postgres connection string:
+Start the full app stack with Docker Compose:
 
 ```bash
-POSTGRES_URL=postgres://postgres:postgres@localhost:54322/postgres
+docker compose up -d
 ```
 
-You can also use the setup script to create a local Docker Postgres database:
+Open [http://localhost:3000](http://localhost:3000).
+
+The default Compose stack builds the production app image, starts PostgreSQL,
+runs database migrations, and mounts local music/artwork folders from the project
+root:
+
+- `tracks/`: local audio files
+- `covers/`: extracted and uploaded cover images
+
+PostgreSQL is available from the host at:
 
 ```bash
-pnpm db:setup
+postgresql://postgres:postgres@localhost:54322/music
 ```
 
-The setup script may still ask for `BLOB_READ_WRITE_TOKEN`; this project stores uploaded covers locally, so that value is not required.
+Docker images default to a Huawei Cloud SWR mirror to avoid Docker Hub pull
+timeouts. Override them with `NODE_IMAGE` or `POSTGRES_IMAGE` if your network
+uses a different mirror. Docker builds also default to `registry.npmmirror.com`;
+override it with `NPM_CONFIG_REGISTRY` when needed. The default platform is
+`linux/amd64` for mirror compatibility; override `DOCKER_PLATFORM` if your
+mirror provides another architecture.
+
+View service status and logs:
+
+```bash
+docker compose ps
+docker compose logs app
+```
+
+Stop the stack:
+
+```bash
+docker compose down
+```
 
 ## Add Local Music
 
@@ -47,11 +70,33 @@ Embedded cover art is extracted during seeding and written to `covers/`.
 
 ## Database
 
-Run migrations and seed songs from `tracks/`:
+Docker runs migrations automatically when the app container starts. To import
+music from `tracks/`, run the seed command manually after the stack is up:
+
+```bash
+docker compose exec app pnpm db:seed
+```
+
+The seed command clears existing songs and playlists before scanning `tracks/`,
+so only run it when you want to rebuild the library from local files.
+
+For non-Docker local development, install dependencies:
+
+```bash
+pnpm install
+```
+
+Then create a `.env` file:
+
+```bash
+POSTGRES_URL=postgresql://postgres:postgres@localhost:54322/music
+```
+
+Run the local dev server:
 
 ```bash
 pnpm db:migrate
-pnpm db:seed
+pnpm dev
 ```
 
 Open Drizzle Studio:
@@ -75,7 +120,7 @@ If `POSTGRES_URL` is not set, the app still starts with empty library states.
 ## Running Locally
 
 ```bash
-pnpm dev
+docker compose up -d
 ```
 
 Open [http://localhost:3000](http://localhost:3000).

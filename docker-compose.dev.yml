@@ -1,0 +1,22 @@
+services:
+  pgsql:
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    image: ${POSTGRES_IMAGE:-swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/postgres:16.4}
+    environment:
+      POSTGRES_DB: music
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "54322:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d music"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
